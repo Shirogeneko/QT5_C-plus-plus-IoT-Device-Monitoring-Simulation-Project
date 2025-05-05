@@ -23,7 +23,7 @@ private slots:
 
 private:
     Ui::WarningWindow *ui;
-    bool boolOpen = false;;
+    bool boolOpen = false;
 };
 
 #endif // WARNINGWINDOW_H

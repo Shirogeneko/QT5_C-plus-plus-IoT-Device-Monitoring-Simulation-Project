@@ -8,6 +8,8 @@ MainWindow::MainWindow(QWidget *parent)
     url.setUrl("http://127.0.0.1:5000/");
     ui->setupUi(this);
 
+    messageBox = new WarningWindow(this);
+
     db.initDatabase();
 
     apiTimer = new QTimer(this);
@@ -19,8 +21,8 @@ MainWindow::MainWindow(QWidget *parent)
     deviceUpdate();
 
     criticalWindowTimer = new QTimer(this);
-    connect(criticalWindowTimer, SIGNAL(timeout()), this, SLOT(criticalWindow()));
     connect(criticalWindowTimer, SIGNAL(timeout()), this, SLOT(deviceUpdate()));
+    connect(criticalWindowTimer, SIGNAL(timeout()), this, SLOT(criticalWindow()));
     criticalWindowTimer->start(5*1000);
     criticalWindow();
 
@@ -118,6 +120,19 @@ void MainWindow::addDatabase()
                            client.data.state[i],
                            client.data.date_time[i]);
         }
+        else
+        {
+
+            QDateTime  time = QDateTime::currentDateTime();
+            for(int deviceNum = 0; deviceNum < 5; deviceNum++)
+            {
+                db.addDatabase("device" + QString::number(deviceNum+1),
+                               "",
+                               "",
+                               "未連線",
+                               time.toString("yyyy-MM-dd HH:mm:ss"));
+            }
+        }
     }
 
 }
@@ -213,11 +228,11 @@ void MainWindow::criticalWindow()
         if(messageBox->isOpen() == false)
         {
             messageBox = new WarningWindow(this);
+            messageBox->init();
             messageBox->resize(300, 200);
             messageBox->setAttribute(Qt::WA_DeleteOnClose);
             messageBox->setWindowTitle("異常視窗");
             messageBox->show();
-            messageBox->init();
 
             /*
             QDialog *dialog = new QDialog(this);
@@ -238,7 +253,10 @@ void MainWindow::criticalWindow()
     }
     else
     {
-        messageBox->~WarningWindow();
+        if(messageBox->isOpen() == true)
+        {
+            messageBox->~WarningWindow();
+        }
     }
     messageBox->setText(message);
     /*

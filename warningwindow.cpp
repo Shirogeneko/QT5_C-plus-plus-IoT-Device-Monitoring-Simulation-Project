@@ -5,6 +5,7 @@ WarningWindow::WarningWindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::WarningWindow)
 {
+    boolOpen = false;
     ui->setupUi(this);
 }
 
@@ -26,7 +27,10 @@ bool WarningWindow::isOpen()
 
 void WarningWindow::setText(QString text)
 {
-    ui->label->setText(text);
+    if(boolOpen)
+    {
+        ui->label->setText(text);
+    }
 }
 
 void WarningWindow::on_pushButton_clicked()
