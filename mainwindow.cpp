@@ -5,37 +5,50 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    url.setUrl("http://127.0.0.1:5000/");
     ui->setupUi(this);
 
     db.initDatabase();
 
     apiTimer = new QTimer(this);
-    connect(apiTimer, SIGNAL(timeout()), this, SLOT(ApiPost()));
-    connect(apiTimer, SIGNAL(timeout()), this, SLOT(DeviceUpdate()));
-    connect(apiTimer, SIGNAL(timeout()), this, SLOT(AddDatabase()));
+    connect(apiTimer, SIGNAL(timeout()), this, SLOT(apiPost()));
+    connect(apiTimer, SIGNAL(timeout()), this, SLOT(deviceUpdate()));
+    connect(apiTimer, SIGNAL(timeout()), this, SLOT(addDatabase()));
     //connect(apiTime, SIGNAL(timeout()), this, SLOT(randData()));
     apiTimer->start(5*1000);
-    ApiPost();
-    DeviceUpdate();
+    apiPost();
+    deviceUpdate();
 
     criticalWindowTimer = new QTimer(this);
-    connect(criticalWindowTimer, SIGNAL(timeout()), this, SLOT(CriticalWindow()));
+    connect(criticalWindowTimer, SIGNAL(timeout()), this, SLOT(criticalWindow()));
     criticalWindowTimer->start(5*1000);
+    criticalWindow();
+
+    windowTimer = new QTimer(this);
+    connect(windowTimer, SIGNAL(timeout()), this, SLOT(windowTime()));
+    windowTimer->start(1*1000);
+    windowTime();
+
 }
 
 MainWindow::~MainWindow()
 {
+    windowTimer->stop();
     apiTimer->stop();
     criticalWindowTimer->stop();
     db.closeDatabase();
     delete ui;
+    delete messageBox;
 }
 
-void MainWindow::DeviceUpdate()
+void MainWindow::windowTime()
 {
-    QList<QLabel *> uiLabelList = ui->centralwidget->findChildren<QLabel *>();
     QDateTime  time = QDateTime::currentDateTime();
-    uiLabelList.at(0)->setText(time.toString("yyyy-MM-dd HH:mm:ss"));
+    ui->timeLabel->setText(time.toString("yyyy-MM-dd HH:mm:ss"));
+}
+
+void MainWindow::deviceUpdate()
+{
     //QList<QLabel *> uiObjectList = ui->gridLayoutWidget->findChildren<QLabel *>();
     //更新UI資料
     QObjectList uiObjectList = ui->gridLayoutWidget->children();
@@ -61,15 +74,15 @@ void MainWindow::DeviceUpdate()
             if(client.data.temp.at(arrayID.toInt()-1) == ""||
                client.data.rh.at(arrayID.toInt()-1) == "")
             {
-                SetLED(qobject_cast<QLabel*>(uiObjectList[i]),0,20);
+                setLED(qobject_cast<QLabel*>(uiObjectList[i]),0,20);
             }
             else if(temp<=0 || temp >=50 || rh<=25 || rh >=100)
             {
-                SetLED(qobject_cast<QLabel*>(uiObjectList[i]),1,20);
+                setLED(qobject_cast<QLabel*>(uiObjectList[i]),1,20);
             }
             else
             {
-                SetLED(qobject_cast<QLabel*>(uiObjectList[i]),2,20);
+                setLED(qobject_cast<QLabel*>(uiObjectList[i]),2,20);
             }
         }
         else if(objectName.contains("deviceTemp", Qt::CaseSensitive))
@@ -83,7 +96,7 @@ void MainWindow::DeviceUpdate()
     }
 }
 
-void MainWindow::AddDatabase()
+void MainWindow::addDatabase()
 {
     int arraySize = client.data.name.size();
     //寫資料到資料庫
@@ -103,7 +116,7 @@ void MainWindow::AddDatabase()
 }
 
 //UI連線狀況設計
-void MainWindow::SetLED(QLabel* Label,int color,int size)
+void MainWindow::setLED(QLabel* Label,int color,int size)
 {
     QString min_width = QString("min-width: %1px;").arg(size*2);
     QString min_height = QString("min-height: %1px;").arg(size);
@@ -142,7 +155,7 @@ void MainWindow::SetLED(QLabel* Label,int color,int size)
 }
 
 //隨機更新設備狀況
-void MainWindow::RandData()
+void MainWindow::randData()
 {
     int nameID = QRandomGenerator::global()->bounded(4);
     int temp = QRandomGenerator::global()->bounded(-10,100);
@@ -157,11 +170,11 @@ void MainWindow::RandData()
     obj.insert("state", "test");
     obj.insert("date_time", time.toString("yyyy-MM-dd HH:mm:ss"));
     QByteArray byteArray = QJsonDocument(obj).toJson(QJsonDocument::Compact);
-    client.Put("http://127.0.0.1:5000/test/put",byteArray);
+    client.Put(url.toString() + "test/put",byteArray);
 }
 
 //警示視窗
-void MainWindow::CriticalWindow()
+void MainWindow::criticalWindow()
 {
     QObjectList cs = ui->gridLayoutWidget->children();
     QString message = "";
@@ -183,31 +196,48 @@ void MainWindow::CriticalWindow()
             }
         }
     }
-    messageBox = new QMessageBox(QMessageBox::Critical,
-                                  "異常弹窗",
-                                  message,
-                                  QMessageBox::Ok);
-    messageBox->setModal(false);
-    messageBox->setAttribute(Qt::WA_DeleteOnClose);
-    messageBox->show();
+    if(messageBox->isOpen() == false)
+    {
+        messageBox = new WarningWindow(this);
+        messageBox->resize(300, 200);
+        messageBox->setAttribute(Qt::WA_DeleteOnClose);
+        messageBox->setWindowTitle("異常視窗");
+        messageBox->show();
+        messageBox->init();
+
+        /*
+        QDialog *dialog = new QDialog(this);
+        dialog->setWindowTitle("異常視窗");
+        dialog->setAttribute(Qt::WA_DeleteOnClose);
+        dialog->setModal(false);
+        dialog->show();
+        QPushButton okButton("OK", &dialog);
+
+        messageBox = new QMessageBox(QMessageBox::Critical,
+                                      "異常視窗",
+                                      "",
+                                      QMessageBox::Ok);
+        messageBox->setModal(false);
+        messageBox->setAttribute(Qt::WA_DeleteOnClose);*/
+
+    }
+    messageBox->setText(message);
+    /*
+    messageBox->setText(message);
+    messageBox->show();*/
     //messageBox.exec();
-}
-
-void MainWindow::on_testButton1_pressed()
-{
-
 }
 
 void MainWindow::on_testButton2_pressed()
 {
-    RandData();
-    DeviceUpdate();
+    randData();
+    deviceUpdate();
 }
 
-void MainWindow::ApiPost()
+void MainWindow::apiPost()
 {
     QJsonObject obj;
     obj.insert("name", "all");
-    client.Post("http://127.0.0.1:5000/test/post",
+    client.Post(url.toString() + "test/post",
                 QJsonDocument(obj).toJson(QJsonDocument::Compact));
 }

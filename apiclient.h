@@ -21,14 +21,12 @@ public:
     void Get(const QString &url);
     void Get(const QUrl &url);
     bool Post(const QString &url, const QByteArray& jsonObj);
-    void Post(const QUrl &url, const QByteArray& jsonObj);
+    bool Post(const QUrl &url, const QByteArray& jsonObj);
     bool Put(const QString &url, const QByteArray& jsonObj);
-    void Put(const QUrl &url, const QByteArray& jsonObj);
+    bool Put(const QUrl &url, const QByteArray& jsonObj);
     void Delete(const QString &url);
     void Delete(const QUrl &url);
     ReplyData data;
-
-
 
 private slots:
 

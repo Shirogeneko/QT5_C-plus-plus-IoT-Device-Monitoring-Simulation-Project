@@ -10,6 +10,7 @@
 #include <QPushButton>
 #include "apiclient.h"
 #include "dbdatabase.h"
+#include "warningwindow.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -25,13 +26,13 @@ public:
 
 
 private slots:
-    void DeviceUpdate();
-    void CriticalWindow();
-    void AddDatabase();
-    void on_testButton1_pressed();
+    void deviceUpdate();
+    void criticalWindow();
+    void addDatabase();
     void on_testButton2_pressed();
-    void RandData();
-    void ApiPost();
+    void randData();
+    void apiPost();
+    void windowTime();
 
 private:
     Ui::MainWindow *ui;
@@ -39,7 +40,9 @@ private:
     ApiClient client;
     QTimer *apiTimer;
     QTimer *criticalWindowTimer;
-    QMessageBox *messageBox;
-    void SetLED(QLabel* Label,int color,int size);
+    QTimer *windowTimer;
+    WarningWindow *messageBox;
+    QUrl url;
+    void setLED(QLabel* Label,int color,int size);
 };
 #endif // MAINWINDOW_H

@@ -19,15 +19,18 @@ SOURCES += \
     apiclient.cpp \
     dbdatabase.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    warningwindow.cpp
 
 HEADERS += \
     apiclient.h \
     dbdatabase.h \
-    mainwindow.h
+    mainwindow.h \
+    warningwindow.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    warningwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
