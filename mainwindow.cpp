@@ -12,15 +12,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     apiTimer = new QTimer(this);
     connect(apiTimer, SIGNAL(timeout()), this, SLOT(apiPost()));
-    connect(apiTimer, SIGNAL(timeout()), this, SLOT(deviceUpdate()));
     connect(apiTimer, SIGNAL(timeout()), this, SLOT(addDatabase()));
-    //connect(apiTime, SIGNAL(timeout()), this, SLOT(randData()));
+    connect(apiTimer, SIGNAL(timeout()), this, SLOT(randData()));
     apiTimer->start(5*1000);
     apiPost();
     deviceUpdate();
 
     criticalWindowTimer = new QTimer(this);
     connect(criticalWindowTimer, SIGNAL(timeout()), this, SLOT(criticalWindow()));
+    connect(criticalWindowTimer, SIGNAL(timeout()), this, SLOT(deviceUpdate()));
     criticalWindowTimer->start(5*1000);
     criticalWindow();
 
@@ -33,12 +33,19 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+
+    windowTimer->disconnect(windowTimer, SIGNAL(timeout()), this, SLOT(windowTime()));
     windowTimer->stop();
+
+    apiTimer->disconnect(apiTimer, SIGNAL(timeout()), this, SLOT(apiPost()));
+    apiTimer->disconnect(apiTimer, SIGNAL(timeout()), this, SLOT(addDatabase()));
+    apiTimer->disconnect(apiTimer, SIGNAL(timeout()), this, SLOT(randData()));
     apiTimer->stop();
+    criticalWindowTimer->disconnect(criticalWindowTimer, SIGNAL(timeout()), this, SLOT(criticalWindow()));
+    criticalWindowTimer->disconnect(criticalWindowTimer, SIGNAL(timeout()), this, SLOT(deviceUpdate()));
     criticalWindowTimer->stop();
     db.closeDatabase();
     delete ui;
-    delete messageBox;
 }
 
 void MainWindow::windowTime()
@@ -76,7 +83,7 @@ void MainWindow::deviceUpdate()
             {
                 setLED(qobject_cast<QLabel*>(uiObjectList[i]),0,20);
             }
-            else if(temp<=0 || temp >=50 || rh<=25 || rh >=100)
+            else if(temp<=5 || temp >=50 || rh<=25 || rh >=90)
             {
                 setLED(qobject_cast<QLabel*>(uiObjectList[i]),1,20);
             }
@@ -158,7 +165,7 @@ void MainWindow::setLED(QLabel* Label,int color,int size)
 void MainWindow::randData()
 {
     int nameID = QRandomGenerator::global()->bounded(4);
-    int temp = QRandomGenerator::global()->bounded(-10,100);
+    int temp = QRandomGenerator::global()->bounded(0,70);
     int rh = QRandomGenerator::global()->bounded(0,100);
 
     QDateTime  time = QDateTime::currentDateTime();
@@ -189,37 +196,49 @@ void MainWindow::criticalWindow()
         {
             int temp = client.data.temp.at(arrayID.toInt()-1).toInt();
             int rh = client.data.rh.at(arrayID.toInt()-1).toInt();
-            if(temp<=0 || temp >=50 || rh<=25 || rh >=100)
+            if(client.data.temp.at(arrayID.toInt()-1) == ""||
+               client.data.rh.at(arrayID.toInt()-1) == "")
+            {
+                message.append(client.data.name.at(arrayID.toInt()-1).toUtf8() + "設備未連線\n");
+            }
+            else if(temp<=5 || temp >=50 || rh<=25 || rh >=90)
             {
                 message.append(client.data.name.at(arrayID.toInt()-1).toUtf8() + "裝置異常\n");
 
             }
         }
     }
-    if(messageBox->isOpen() == false)
+    if(message != "")
     {
-        messageBox = new WarningWindow(this);
-        messageBox->resize(300, 200);
-        messageBox->setAttribute(Qt::WA_DeleteOnClose);
-        messageBox->setWindowTitle("異常視窗");
-        messageBox->show();
-        messageBox->init();
+        if(messageBox->isOpen() == false)
+        {
+            messageBox = new WarningWindow(this);
+            messageBox->resize(300, 200);
+            messageBox->setAttribute(Qt::WA_DeleteOnClose);
+            messageBox->setWindowTitle("異常視窗");
+            messageBox->show();
+            messageBox->init();
 
-        /*
-        QDialog *dialog = new QDialog(this);
-        dialog->setWindowTitle("異常視窗");
-        dialog->setAttribute(Qt::WA_DeleteOnClose);
-        dialog->setModal(false);
-        dialog->show();
-        QPushButton okButton("OK", &dialog);
+            /*
+            QDialog *dialog = new QDialog(this);
+            dialog->setWindowTitle("異常視窗");
+            dialog->setAttribute(Qt::WA_DeleteOnClose);
+            dialog->setModal(false);
+            dialog->show();
+            QPushButton okButton("OK", &dialog);
 
-        messageBox = new QMessageBox(QMessageBox::Critical,
-                                      "異常視窗",
-                                      "",
-                                      QMessageBox::Ok);
-        messageBox->setModal(false);
-        messageBox->setAttribute(Qt::WA_DeleteOnClose);*/
+            messageBox = new QMessageBox(QMessageBox::Critical,
+                                          "異常視窗",
+                                          "",
+                                          QMessageBox::Ok);
+            messageBox->setModal(false);
+            messageBox->setAttribute(Qt::WA_DeleteOnClose);*/
 
+        }
+    }
+    else
+    {
+        messageBox->~WarningWindow();
     }
     messageBox->setText(message);
     /*

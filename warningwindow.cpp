@@ -10,6 +10,7 @@ WarningWindow::WarningWindow(QWidget *parent) :
 
 WarningWindow::~WarningWindow()
 {
+    boolOpen = false;
     delete ui;
 }
 

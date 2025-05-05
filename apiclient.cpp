@@ -385,6 +385,8 @@ bool ApiClient::Put(const QString &url, const QByteArray &jsonObj)
     }
     auto jsonStr = reply->readAll();
     reply->deleteLater();
+
+    /*
     if (jsonStr.size() == 0)
         return false;
     doucment = QJsonDocument::fromJson(jsonStr, &json_error);
@@ -411,8 +413,7 @@ bool ApiClient::Put(const QString &url, const QByteArray &jsonObj)
             if (obj.contains("date_time")) {
                 data.date_time << obj.value("date_time").toString();
             }
-
-            qDebug() << "name：" << data.name
+            qDebug() << "Put:name：" << data.name
                         << "temp：" << data.temp
                         << "rh：" << data.rh
                         << "state：" << data.state
@@ -445,8 +446,7 @@ bool ApiClient::Put(const QString &url, const QByteArray &jsonObj)
                 if (obj.contains("date_time")) {
                     data.date_time << obj.value("date_time").toString();
                 }
-
-                qDebug() << "name：" << data.name
+                qDebug() << "Put:name：" << data.name
                             << "temp：" << data.temp
                             << "rh：" << data.rh
                             << "state：" << data.state
@@ -458,7 +458,7 @@ bool ApiClient::Put(const QString &url, const QByteArray &jsonObj)
     else
     {
         qDebug() << "Json解析失敗：";
-    }
+    }*/
     return false;
 }
 
@@ -483,6 +483,8 @@ bool ApiClient::Put(const QUrl &url, const QByteArray &jsonObj)
     }
     auto jsonStr = reply->readAll();
     reply->deleteLater();
+
+    /*
     if (jsonStr.size() == 0)
         return false;
     doucment = QJsonDocument::fromJson(jsonStr, &json_error);
@@ -509,8 +511,7 @@ bool ApiClient::Put(const QUrl &url, const QByteArray &jsonObj)
             if (obj.contains("date_time")) {
                 data.date_time << obj.value("date_time").toString();
             }
-
-            qDebug() << "name：" << data.name
+            qDebug() << "Put:name：" << data.name
                         << "temp：" << data.temp
                         << "rh：" << data.rh
                         << "state：" << data.state
@@ -544,7 +545,7 @@ bool ApiClient::Put(const QUrl &url, const QByteArray &jsonObj)
                     data.date_time << obj.value("date_time").toString();
                 }
 
-                qDebug() << "name：" << data.name
+                qDebug() << "Put:name：" << data.name
                             << "temp：" << data.temp
                             << "rh：" << data.rh
                             << "state：" << data.state
@@ -556,7 +557,7 @@ bool ApiClient::Put(const QUrl &url, const QByteArray &jsonObj)
     else
     {
         qDebug() << "Json解析失敗：";
-    }
+    }*/
     return false;
 }
 
